@@ -391,11 +391,59 @@ code {
 .footer-text a:hover { color: var(--accent); }
 .fsep { margin: 0 10px; opacity: .35; }
 
+/* ── hero terminal ───────────────────────────────────────────────── */
+/* Centred below the hero text, wide enough for blame lines          */
+.hero-terminal {
+  margin-top: 52px;
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Reserve height for the tallest scene (blame, ~12 rows) so the
+   terminal frame doesn't resize between animations.                 */
+.hero-terminal .terminal-body {
+  min-height: 320px;
+}
+
+/* ── blinking cursor ─────────────────────────────────────────────── */
+.t-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: var(--text);
+  vertical-align: text-bottom;
+  margin-left: 1px;
+  animation: cursor-blink 1.1s step-end infinite;
+}
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+/* ── per-line reveal fade-up ─────────────────────────────────────── */
+.tl-in {
+  animation: line-in 0.14s ease-out both;
+}
+@keyframes line-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* dim token — elapsed time in the summary line */
+.t-dim { color: var(--text-muted); }
+
+/* ── reduced motion ──────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .t-cursor { animation: none; opacity: 1; }
+  .tl-in    { animation: none; }
+}
+
 /* ── responsive ──────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .hero { padding: 56px 0 48px; }
   .install-cmd { font-size: 11.5px; padding: 11px 14px; }
   .terminal-body { padding: 18px 16px; font-size: 12px; }
+  .hero-terminal .terminal-body { min-height: 260px; }
   .section { padding: 48px 0; }
   .section-title { margin-bottom: 28px; }
 }
