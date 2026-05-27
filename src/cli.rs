@@ -76,6 +76,8 @@ pub struct Args {
 pub enum Format {
     /// Human-readable coloured text (default).
     Text,
+    /// Fixed-width aligned table.
+    Table,
     /// JSON array of finding objects.
     Json,
     /// GitHub Actions workflow commands (::warning / ::error / ::notice).

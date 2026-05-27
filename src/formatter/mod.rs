@@ -2,6 +2,7 @@
 
 pub mod github;
 pub mod json;
+pub mod table;
 pub mod text;
 
 use crate::matcher::Finding;
