@@ -93,7 +93,7 @@ fn json_total_count_matches_samples() {
         .output()
         .unwrap();
     let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(arr.len(), 17, "samples should have exactly 17 annotations");
+    assert_eq!(arr.len(), 41, "samples should have exactly 41 annotations");
 }
 
 // ── --format github-annotations ───────────────────────────────────────────────
@@ -187,7 +187,7 @@ fn include_glob_py_excludes_js_ts() {
 
 #[test]
 fn include_glob_rs_finds_nothing_in_samples() {
-    // samples/ only has .py, .js, .ts — no .rs files.
+    // samples/ has .py, .js, .ts, .zig, .qs, .lua — no .rs files.
     let output = todork()
         .args([&samples_dir(), "--format", "json", "--include", "*.rs"])
         .output()
