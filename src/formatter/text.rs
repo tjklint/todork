@@ -113,8 +113,12 @@ impl<W: WriteColor + Write> Formatter for TextFormatter<W> {
 }
 
 impl<W: WriteColor> TextFormatter<W> {
-    /// Write all findings grouped by file, then a summary line.
-    pub fn write_all(&mut self, findings: &[Finding]) -> anyhow::Result<()> {
+    /// Write all findings grouped by file, then a summary line with elapsed time.
+    pub fn write_all(
+        &mut self,
+        findings: &[Finding],
+        elapsed: std::time::Duration,
+    ) -> anyhow::Result<()> {
         if findings.is_empty() {
             return Ok(());
         }
@@ -150,8 +154,28 @@ impl<W: WriteColor> TextFormatter<W> {
             if file_count == 1 { "" } else { "s" },
         )?;
         self.reset()?;
+
+        // Elapsed time — dim/gray, no emoji
+        self.set(ColorSpec::new().set_dimmed(true))?;
+        write!(self.writer, "  {}", format_elapsed(elapsed))?;
+        self.reset()?;
+
         writeln!(self.writer)?;
         Ok(())
+    }
+}
+
+/// Format a duration as a compact human-readable string.
+///
+/// Examples: `0.028s`, `1.23s`, `12.3s`
+fn format_elapsed(d: std::time::Duration) -> String {
+    let secs = d.as_secs_f64();
+    if secs < 1.0 {
+        format!("{secs:.3}s")
+    } else if secs < 10.0 {
+        format!("{secs:.2}s")
+    } else {
+        format!("{secs:.1}s")
     }
 }
 
@@ -190,7 +214,7 @@ mod tests {
     fn render(findings: &[Finding]) -> String {
         let buf = Vec::new();
         let mut fmt = TextFormatter::new(NoColor::new(buf), false);
-        fmt.write_all(findings).unwrap();
+        fmt.write_all(findings, std::time::Duration::ZERO).unwrap();
         String::from_utf8(fmt.writer.into_inner()).unwrap()
     }
 
