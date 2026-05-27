@@ -170,7 +170,7 @@ export default component$(() => {
         <div class="container">
           <div class="nav-inner">
             <a class="nav-logo" href="/todork/" style="text-decoration:none">
-              <span class="logo-accent">✦</span> todork
+              <span class="logo-mark">td</span> todork
             </a>
             <a class="gh-btn" href={GH} target="_blank" rel="noopener noreferrer">
               <GhIcon /> GitHub
@@ -184,15 +184,16 @@ export default component$(() => {
         <div class="container">
           <p class="hero-eyebrow">Rust · Open Source · MIT</p>
           <h1 class="hero-name"><span class="name-accent">to</span>dork</h1>
+          <p class="hero-pronunciation">/ ˈtuː.dɔːrk / <span class="pronunciation-plain">TOO-dork</span></p>
           <p class="hero-tagline">
             Hyper-fast annotation scanner for codebases.{' '}
             Find every TODO, FIXME, HACK and more&nbsp;- in milliseconds.
           </p>
 
           <div class="badge-row">
-            <span class="badge badge-rust">🦀 Written in Rust</span>
-            <span class="badge badge-oss">⭐ Open Source</span>
-            <span class="badge badge-mit">📄 MIT Licensed</span>
+            <span class="badge badge-rust"><span class="badge-dot" />Written in Rust</span>
+            <span class="badge badge-oss"><span class="badge-dot" />Open Source</span>
+            <span class="badge badge-mit"><span class="badge-dot" />MIT Licensed</span>
           </div>
 
           <div class="install-block">
@@ -370,7 +371,15 @@ export const head: DocumentHead = {
     { property: 'og:title',       content: 'todork' },
     { property: 'og:description', content: 'Hyper-fast annotation scanner for codebases. Written in Rust.' },
     { property: 'og:type',        content: 'website' },
-    { name: 'theme-color',        content: '#0a0e1a' },
+    { name: 'theme-color',        content: '#07090f' },
     { name: 'twitter:card',       content: 'summary' },
+  ],
+  links: [
+    { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+    {
+      rel: 'stylesheet',
+      href: 'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;700&display=swap',
+    },
   ],
 };
