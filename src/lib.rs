@@ -7,21 +7,32 @@ pub mod matcher;
 pub mod scanner;
 pub mod walker;
 
+use crate::cli::{ColorWhen, Format};
 use crate::config::Config;
 use crate::exit_code::ExitCode;
+use crate::formatter::github::GithubFormatter;
+use crate::formatter::json::JsonFormatter;
 use crate::formatter::text::TextFormatter;
+use crate::formatter::Formatter;
 use crate::matcher::{Matcher, DEFAULT_TAGS};
 use crate::walker::walk_parallel;
 use crossbeam_channel::bounded;
+use std::io::Write;
 use std::sync::Arc;
 use termcolor::{ColorChoice, StandardStream};
 
 /// Run todork with the given configuration and write results to stdout.
 ///
 /// Returns [`ExitCode::Success`] when annotations are found,
-/// [`ExitCode::NotFound`] when none are found.
+/// [`ExitCode::NotFound`] when none are found (or when `--exit-zero` is set
+/// and no annotations were found).
 pub fn run(config: Config) -> anyhow::Result<ExitCode> {
-    let matcher = Arc::new(Matcher::new(DEFAULT_TAGS)?);
+    let tags = if config.tags.is_empty() {
+        DEFAULT_TAGS.to_vec()
+    } else {
+        config.tags.clone()
+    };
+    let matcher = Arc::new(Matcher::new(&tags)?);
     let (tx, rx) = bounded(256);
 
     // Walk in parallel on a background thread.
@@ -39,21 +50,52 @@ pub fn run(config: Config) -> anyhow::Result<ExitCode> {
     // Sort deterministically: by file path, then by line number.
     all_findings.sort_unstable_by(|a, b| a.file.cmp(&b.file).then_with(|| a.line.cmp(&b.line)));
 
-    // Detect whether stdout is a TTY and whether the user forced/disabled colour.
-    let colour_choice = if std::env::var_os("NO_COLOR").is_some() {
-        ColorChoice::Never
-    } else {
-        ColorChoice::Auto
-    };
-    let stdout = StandardStream::stdout(colour_choice);
-    let use_colour = colour_choice != ColorChoice::Never;
-    let mut fmt = TextFormatter::new(stdout, use_colour);
-    fmt.write_all(&all_findings)?;
+    // ── output ────────────────────────────────────────────────────────────────
+    match config.format {
+        Format::Text => {
+            let colour_choice = resolve_color(config.color);
+            let use_colour = colour_choice != ColorChoice::Never;
+            let stdout = StandardStream::stdout(colour_choice);
+            let mut fmt = TextFormatter::new(stdout, use_colour);
+            fmt.write_all(&all_findings)?;
+        }
+        Format::Json => {
+            let mut stdout = std::io::stdout();
+            JsonFormatter.format(&all_findings, &mut stdout)?;
+            // Ensure trailing newline after JSON.
+            writeln!(stdout)?;
+        }
+        Format::GithubAnnotations => {
+            let mut stdout = std::io::stdout();
+            GithubFormatter.format(&all_findings, &mut stdout)?;
+        }
+    }
 
-    if all_findings.is_empty() {
-        Ok(ExitCode::NotFound)
+    // ── exit code ─────────────────────────────────────────────────────────────
+    if config.exit_zero || all_findings.is_empty() {
+        if all_findings.is_empty() {
+            Ok(ExitCode::NotFound)
+        } else {
+            Ok(ExitCode::Success)
+        }
     } else {
         Ok(ExitCode::Success)
+    }
+}
+
+/// Translate the CLI [`ColorWhen`] setting into a termcolor [`ColorChoice`],
+/// also honouring the `NO_COLOR` and `FORCE_COLOR` environment variables.
+fn resolve_color(when: ColorWhen) -> ColorChoice {
+    match when {
+        ColorWhen::Always => ColorChoice::Always,
+        ColorWhen::Never => ColorChoice::Never,
+        ColorWhen::Auto => {
+            if std::env::var_os("NO_COLOR").is_some() {
+                ColorChoice::Never
+            } else {
+                ColorChoice::Auto
+            }
+        }
     }
 }
 
@@ -64,35 +106,104 @@ mod tests {
     use clap::Parser;
     use tempfile::TempDir;
 
-    fn run_on_dir(dir: &TempDir) -> anyhow::Result<ExitCode> {
-        let args = Args::parse_from(["todork", dir.path().to_str().unwrap()]);
+    fn run_on(argv: &[&str]) -> anyhow::Result<ExitCode> {
+        let args = Args::parse_from(argv);
         let config = Config::from_args(args)?;
         run(config)
     }
 
+    fn run_on_dir(dir: &TempDir) -> anyhow::Result<ExitCode> {
+        run_on(&["todork", dir.path().to_str().unwrap()])
+    }
+
+    fn write_file(dir: &TempDir, name: &str, content: &str) {
+        use std::io::Write;
+        let mut f = std::fs::File::create(dir.path().join(name)).unwrap();
+        writeln!(f, "{content}").unwrap();
+    }
+
+    // ── exit codes ────────────────────────────────────────────────────────────
+
     #[test]
     fn empty_dir_returns_not_found() {
         let dir = TempDir::new().unwrap();
-        let code = run_on_dir(&dir).unwrap();
-        assert_eq!(code, ExitCode::NotFound);
+        assert_eq!(run_on_dir(&dir).unwrap(), ExitCode::NotFound);
     }
 
     #[test]
     fn dir_with_annotation_returns_success() {
-        use std::io::Write;
         let dir = TempDir::new().unwrap();
-        let mut f = std::fs::File::create(dir.path().join("t.rs")).unwrap();
-        writeln!(f, "// TODO: test").unwrap();
-        let code = run_on_dir(&dir).unwrap();
+        write_file(&dir, "t.rs", "// TODO: test");
+        assert_eq!(run_on_dir(&dir).unwrap(), ExitCode::Success);
+    }
+
+    #[test]
+    fn exit_zero_with_no_findings_returns_not_found() {
+        let dir = TempDir::new().unwrap();
+        let code = run_on(&["todork", "--exit-zero", dir.path().to_str().unwrap()]).unwrap();
+        assert_eq!(code, ExitCode::NotFound);
+    }
+
+    #[test]
+    fn exit_zero_with_findings_still_returns_success() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "t.rs", "// TODO: test");
+        let code = run_on(&["todork", "--exit-zero", dir.path().to_str().unwrap()]).unwrap();
         assert_eq!(code, ExitCode::Success);
     }
+
+    // ── format dispatching ────────────────────────────────────────────────────
 
     #[test]
     fn run_on_samples_returns_success() {
         let samples = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("samples");
-        let args = Args::parse_from(["todork", samples.to_str().unwrap()]);
-        let config = Config::from_args(args).unwrap();
-        let code = run(config).unwrap();
-        assert_eq!(code, ExitCode::Success);
+        assert_eq!(
+            run_on(&["todork", samples.to_str().unwrap()]).unwrap(),
+            ExitCode::Success
+        );
+    }
+
+    #[test]
+    fn run_json_format_on_samples_returns_success() {
+        let samples = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("samples");
+        assert_eq!(
+            run_on(&["todork", "--format", "json", samples.to_str().unwrap()]).unwrap(),
+            ExitCode::Success
+        );
+    }
+
+    #[test]
+    fn run_github_format_on_samples_returns_success() {
+        let samples = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("samples");
+        assert_eq!(
+            run_on(&[
+                "todork",
+                "--format",
+                "github-annotations",
+                samples.to_str().unwrap()
+            ])
+            .unwrap(),
+            ExitCode::Success
+        );
+    }
+
+    // ── colour resolution ─────────────────────────────────────────────────────
+
+    #[test]
+    fn resolve_color_always() {
+        assert_eq!(resolve_color(ColorWhen::Always), ColorChoice::Always);
+    }
+
+    #[test]
+    fn resolve_color_never() {
+        assert_eq!(resolve_color(ColorWhen::Never), ColorChoice::Never);
+    }
+
+    #[test]
+    fn resolve_color_auto_with_no_color_env() {
+        std::env::set_var("NO_COLOR", "1");
+        let result = resolve_color(ColorWhen::Auto);
+        std::env::remove_var("NO_COLOR");
+        assert_eq!(result, ColorChoice::Never);
     }
 }
