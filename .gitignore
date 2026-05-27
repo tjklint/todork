@@ -17,6 +17,7 @@ target
 website/node_modules/
 website/dist/
 website/lib/
+website/server/
 
 # RustRover
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
