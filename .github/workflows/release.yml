@@ -100,9 +100,6 @@ jobs:
           fi
         shell: bash
 
-      - name: Strip binary (Linux / macOS)
-        if: matrix.os != 'windows-2025'
-        run: strip target/${{ matrix.target }}/release/todork
 
       - name: Package binary (Linux / macOS)
         if: matrix.os != 'windows-2025'
