@@ -13,6 +13,7 @@ use crate::config::Config;
 use crate::exit_code::ExitCode;
 use crate::formatter::github::GithubFormatter;
 use crate::formatter::json::JsonFormatter;
+use crate::formatter::table::TableFormatter;
 use crate::formatter::text::TextFormatter;
 use crate::formatter::Formatter;
 use crate::matcher::{Matcher, DEFAULT_TAGS};
@@ -64,6 +65,13 @@ pub fn run(config: Config) -> anyhow::Result<ExitCode> {
             let use_colour = colour_choice != ColorChoice::Never;
             let stdout = StandardStream::stdout(colour_choice);
             let mut fmt = TextFormatter::new(stdout, use_colour);
+            fmt.write_all(&all_findings, started.elapsed())?;
+        }
+        Format::Table => {
+            let colour_choice = resolve_color(config.color);
+            let use_colour = colour_choice != ColorChoice::Never;
+            let stdout = StandardStream::stdout(colour_choice);
+            let mut fmt = TableFormatter::new(stdout, use_colour);
             fmt.write_all(&all_findings, started.elapsed())?;
         }
         Format::Json => {
@@ -175,6 +183,15 @@ mod tests {
         let samples = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("samples");
         assert_eq!(
             run_on(&["todork", "--format", "json", samples.to_str().unwrap()]).unwrap(),
+            ExitCode::Success
+        );
+    }
+
+    #[test]
+    fn run_table_format_on_samples_returns_success() {
+        let samples = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("samples");
+        assert_eq!(
+            run_on(&["todork", "--format", "table", samples.to_str().unwrap()]).unwrap(),
             ExitCode::Success
         );
     }
