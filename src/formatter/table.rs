@@ -220,7 +220,7 @@ impl<W: WriteColor> TableFormatter<W> {
                 // AGE - yellow
                 let age = f
                     .blame_date
-                    .map(|d| crate::blame::format_age(d))
+                    .map(crate::blame::format_age)
                     .unwrap_or_else(|| "-".to_string());
                 self.set(ColorSpec::new().set_fg(Some(Color::Yellow)))?;
                 write!(self.writer, "  {:<w$}", age, w = w_age)?;
