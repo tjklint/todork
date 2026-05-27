@@ -44,6 +44,9 @@ mod tests {
             severity,
             author: author.map(str::to_string),
             message: "test message".to_string(),
+            blame_author: None,
+            blame_date: None,
+            blame_commit: None,
         }
     }
 
@@ -126,5 +129,28 @@ mod tests {
         // Pretty-printed JSON has newlines and indentation.
         assert!(out.contains('\n'));
         assert!(out.contains("  "));
+    }
+
+    #[test]
+    fn blame_fields_omitted_when_none() {
+        let f = finding("TODO", Severity::Warning, None);
+        let out = render(&[f]);
+        // blame fields use skip_serializing_if so must not appear when None
+        assert!(!out.contains("blame_author"));
+        assert!(!out.contains("blame_date"));
+        assert!(!out.contains("blame_commit"));
+    }
+
+    #[test]
+    fn blame_fields_included_when_present() {
+        let mut f = finding("TODO", Severity::Warning, None);
+        f.blame_author = Some("alice <alice@example.com>".to_string());
+        f.blame_date = Some(1_700_000_000);
+        f.blame_commit = Some("abc1234".to_string());
+        let out = render(&[f]);
+        let arr: Vec<serde_json::Value> = serde_json::from_str(&out).unwrap();
+        assert_eq!(arr[0]["blame_author"], "alice <alice@example.com>");
+        assert_eq!(arr[0]["blame_date"], 1_700_000_000_i64);
+        assert_eq!(arr[0]["blame_commit"], "abc1234");
     }
 }

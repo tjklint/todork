@@ -83,6 +83,22 @@ impl<W: WriteColor> TextFormatter<W> {
         }
 
         writeln!(self.writer)?;
+
+        // Blame line — shown only when --blame was used and data is available.
+        if let (Some(ref author), Some(date)) = (&f.blame_author, f.blame_date) {
+            let age = crate::blame::format_age(date);
+            let commit_part = f
+                .blame_commit
+                .as_deref()
+                .map(|c| format!("  ({c})"))
+                .unwrap_or_default();
+
+            self.set(ColorSpec::new().set_fg(Some(Color::White)))?;
+            write!(self.writer, "  └─ {author}  ·  {age}{commit_part}")?;
+            self.reset()?;
+            writeln!(self.writer)?;
+        }
+
         Ok(())
     }
 }
@@ -165,6 +181,9 @@ mod tests {
             severity,
             author: author.map(str::to_string),
             message: msg.to_string(),
+            blame_author: None,
+            blame_date: None,
+            blame_commit: None,
         }
     }
 
@@ -275,5 +294,24 @@ mod tests {
         let f = make_finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "");
         let out = render(&[f]);
         assert!(out.contains("TODO:"));
+    }
+
+    #[test]
+    fn blame_line_rendered_when_present() {
+        let mut f = make_finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "fix");
+        f.blame_author = Some("alice <alice@example.com>".to_string());
+        f.blame_date = Some(0); // epoch → very old
+        f.blame_commit = Some("abc1234".to_string());
+        let out = render(&[f]);
+        assert!(out.contains("└─"), "should have tree-art prefix");
+        assert!(out.contains("alice <alice@example.com>"));
+        assert!(out.contains("(abc1234)"));
+    }
+
+    #[test]
+    fn no_blame_line_when_blame_absent() {
+        let f = make_finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "fix");
+        let out = render(&[f]);
+        assert!(!out.contains("└─"));
     }
 }

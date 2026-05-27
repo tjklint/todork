@@ -44,7 +44,6 @@ case "$OS" in
         ;;
     MINGW*|MSYS*|CYGWIN*)
         warn "Windows detected. Please download the .zip from https://github.com/$REPO/releases"
-        warn "Or use: winget install tjklint.todork  (once published)"
         exit 0
         ;;
     *)

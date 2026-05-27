@@ -2,7 +2,7 @@
 name = "todork"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.85"
+rust-version = "1.86"
 description = "Hyper-fast CLI scanner for TODO/FIXME/HACK annotations in codebases"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tjklint/todork"
@@ -28,6 +28,7 @@ termcolor = "1.4"
 globset = "0.4"
 crossbeam-channel = "0.5"
 num_cpus = "1.16"
+git2 = { version = "0.19", default-features = false, features = ["vendored-libgit2"] }
 
 [dev-dependencies]
 assert_cmd = "2.0"

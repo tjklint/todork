@@ -32,6 +32,8 @@ pub struct Config {
     pub color: ColorWhen,
     /// When true, always exit 0 even when annotations are found.
     pub exit_zero: bool,
+    /// When true, enrich findings with git blame data.
+    pub blame: bool,
 }
 
 impl Config {
@@ -70,6 +72,7 @@ impl Config {
             threads,
             color: args.color,
             exit_zero: args.exit_zero,
+            blame: args.blame,
         })
     }
 }
@@ -329,5 +332,17 @@ mod tests {
             parse(&["todork", "--color", "always"]).color,
             ColorWhen::Always
         );
+    }
+
+    // ── blame ─────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn blame_default_false() {
+        assert!(!parse(&["todork"]).blame);
+    }
+
+    #[test]
+    fn blame_flag_sets_true() {
+        assert!(parse(&["todork", "--blame"]).blame);
     }
 }

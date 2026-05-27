@@ -51,7 +51,21 @@ impl Formatter for GithubFormatter {
                 f.tag.clone()
             };
             let title = escape_property(&title);
-            let message = escape_data(&f.message);
+            // Append blame info to message when available.
+            let base_message = escape_data(&f.message);
+            let message = match (&f.blame_author, f.blame_date) {
+                (Some(author), Some(date)) => {
+                    let age = crate::blame::format_age(date);
+                    let commit_part = f
+                        .blame_commit
+                        .as_deref()
+                        .map(|c| format!(" ({c})"))
+                        .unwrap_or_default();
+                    let suffix = escape_data(&format!(" [{author} · {age}{commit_part}]"));
+                    format!("{base_message}{suffix}")
+                }
+                _ => base_message,
+            };
 
             writeln!(
                 writer,
@@ -87,6 +101,9 @@ mod tests {
             severity,
             author: author.map(str::to_string),
             message: msg.to_string(),
+            blame_author: None,
+            blame_date: None,
+            blame_commit: None,
         }
     }
 
@@ -216,5 +233,24 @@ mod tests {
         let f = finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "");
         let out = render(&[f]);
         assert!(out.trim().ends_with("::"));
+    }
+
+    #[test]
+    fn blame_info_appended_to_message() {
+        let mut f = finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "fix this");
+        f.blame_author = Some("alice <alice@example.com>".to_string());
+        f.blame_date = Some(0); // epoch — forces a very old age string
+        f.blame_commit = Some("abc1234".to_string());
+        let out = render(&[f]);
+        assert!(out.contains("alice <alice@example.com>"));
+        assert!(out.contains("abc1234"));
+    }
+
+    #[test]
+    fn no_blame_info_when_fields_absent() {
+        let f = finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "msg");
+        let out = render(&[f]);
+        // Should not have blame bracket when blame fields are None
+        assert!(!out.contains(" ["));
     }
 }

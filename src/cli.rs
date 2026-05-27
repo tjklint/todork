@@ -63,6 +63,12 @@ pub struct Args {
     /// Useful for non-blocking CI annotation reporting.
     #[arg(long)]
     pub exit_zero: bool,
+
+    /// Enrich each finding with git blame data: who committed the line and when.
+    /// Requires the scanned path to be inside a git repository.
+    /// No-ops silently on non-git directories.
+    #[arg(long)]
+    pub blame: bool,
 }
 
 /// Output format selection.
@@ -189,5 +195,17 @@ mod tests {
     fn exit_zero_flag() {
         let args = Args::parse_from(["todork", "--exit-zero"]);
         assert!(args.exit_zero);
+    }
+
+    #[test]
+    fn blame_default_false() {
+        let args = Args::parse_from(["todork"]);
+        assert!(!args.blame);
+    }
+
+    #[test]
+    fn blame_flag() {
+        let args = Args::parse_from(["todork", "--blame"]);
+        assert!(args.blame);
     }
 }

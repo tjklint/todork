@@ -1,3 +1,4 @@
+pub mod blame;
 pub mod cli;
 pub mod config;
 pub mod error;
@@ -49,6 +50,11 @@ pub fn run(config: Config) -> anyhow::Result<ExitCode> {
 
     // Sort deterministically: by file path, then by line number.
     all_findings.sort_unstable_by(|a, b| a.file.cmp(&b.file).then_with(|| a.line.cmp(&b.line)));
+
+    // ── git blame enrichment (opt-in) ─────────────────────────────────────────
+    if config.blame && !all_findings.is_empty() {
+        blame::enrich_with_blame(&mut all_findings, &config.paths[0]);
+    }
 
     // ── output ────────────────────────────────────────────────────────────────
     match config.format {
