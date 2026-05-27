@@ -1,5 +1,7 @@
 //! Output formatting — trait definition and per-format implementations.
 
+pub mod github;
+pub mod json;
 pub mod text;
 
 use crate::matcher::Finding;

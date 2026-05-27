@@ -30,19 +30,27 @@ pub fn walk_parallel(
     }
 
     builder
-        .hidden(true) // skip hidden files/dirs by default
-        .git_ignore(true)
-        .git_global(true)
-        .git_exclude(true)
+        .hidden(!config.search_hidden)
+        .git_ignore(config.use_gitignore)
+        .git_global(config.use_gitignore)
+        .git_exclude(config.use_gitignore)
         // Respect .gitignore even when the path is not inside a git repository.
         .require_git(false)
-        .threads(num_cpus::get());
+        .threads(config.threads);
+
+    if let Some(depth) = config.max_depth {
+        builder.max_depth(Some(depth));
+    }
 
     let max_file_size = config.max_file_size;
+    let include = config.include.clone();
+    let exclude = config.exclude.clone();
 
     builder.build_parallel().run(|| {
         let matcher = matcher.clone();
         let sender = sender.clone();
+        let include = include.clone();
+        let exclude = exclude.clone();
         Box::new(move |entry_result| {
             use ignore::WalkState;
 
@@ -57,9 +65,25 @@ pub fn walk_parallel(
             }
 
             let path = entry.path();
+
+            // ── glob filtering ────────────────────────────────────────────────
+            // Match against both the full path AND the bare filename so that a
+            // pattern like `*.rs` or `skip.rs` works without needing `**/`.
+            let filename = path.file_name().unwrap_or_default();
+            if let Some(ref ex) = exclude {
+                if ex.is_match(path) || ex.is_match(filename) {
+                    return WalkState::Continue;
+                }
+            }
+            if let Some(ref inc) = include {
+                if !inc.is_match(path) && !inc.is_match(filename) {
+                    return WalkState::Continue;
+                }
+            }
+
+            // ── scan ──────────────────────────────────────────────────────────
             match scan_file(path, &matcher, max_file_size) {
                 Ok(mut findings) if !findings.is_empty() => {
-                    // Set canonical path so output is consistent.
                     for f in &mut findings {
                         f.file = path.to_path_buf();
                     }
@@ -91,11 +115,24 @@ mod tests {
         Config::from_args(args).unwrap()
     }
 
+    fn config_for_dir_with(dir: &TempDir, extra: &[&str]) -> Config {
+        let path = dir.path().to_str().unwrap();
+        let mut argv = vec!["todork", path];
+        argv.extend_from_slice(extra);
+        let args = Args::parse_from(&argv);
+        Config::from_args(args).unwrap()
+    }
+
     fn collect_findings(config: &Config) -> Vec<Finding> {
-        let matcher = Arc::new(Matcher::new(DEFAULT_TAGS).unwrap());
+        let matcher = Arc::new(Matcher::new(&config.tags).unwrap());
         let (tx, rx) = bounded(256);
         walk_parallel(config, matcher, tx).unwrap();
         rx.into_iter().flatten().collect()
+    }
+
+    fn write_file(dir: &TempDir, name: &str, content: &str) {
+        let mut f = std::fs::File::create(dir.path().join(name)).unwrap();
+        writeln!(f, "{content}").unwrap();
     }
 
     // ── basic walk ────────────────────────────────────────────────────────────
@@ -103,9 +140,7 @@ mod tests {
     #[test]
     fn finds_todo_in_single_file() {
         let dir = TempDir::new().unwrap();
-        let mut f = std::fs::File::create(dir.path().join("a.rs")).unwrap();
-        writeln!(f, "// TODO: test finding").unwrap();
-
+        write_file(&dir, "a.rs", "// TODO: test finding");
         let findings = collect_findings(&config_for_dir(&dir));
         assert_eq!(findings.len(), 1);
         assert_eq!(findings[0].tag, "TODO");
@@ -115,29 +150,22 @@ mod tests {
     fn walks_subdirectories() {
         let dir = TempDir::new().unwrap();
         std::fs::create_dir(dir.path().join("sub")).unwrap();
-        let mut f = std::fs::File::create(dir.path().join("sub/b.py")).unwrap();
-        writeln!(f, "# FIXME: deep file").unwrap();
-
+        write_file(&dir, "sub/b.py", "# FIXME: deep file");
         let findings = collect_findings(&config_for_dir(&dir));
         assert_eq!(findings.len(), 1);
-        assert_eq!(findings[0].tag, "FIXME");
     }
 
     #[test]
     fn empty_directory_returns_no_findings() {
         let dir = TempDir::new().unwrap();
-        let findings = collect_findings(&config_for_dir(&dir));
-        assert!(findings.is_empty());
+        assert!(collect_findings(&config_for_dir(&dir)).is_empty());
     }
 
     #[test]
     fn directory_with_no_annotations_returns_empty() {
         let dir = TempDir::new().unwrap();
-        let mut f = std::fs::File::create(dir.path().join("clean.rs")).unwrap();
-        writeln!(f, "fn main() {{ println!(\"hi\"); }}").unwrap();
-
-        let findings = collect_findings(&config_for_dir(&dir));
-        assert!(findings.is_empty());
+        write_file(&dir, "clean.rs", "fn main() {}");
+        assert!(collect_findings(&config_for_dir(&dir)).is_empty());
     }
 
     // ── gitignore ─────────────────────────────────────────────────────────────
@@ -145,17 +173,94 @@ mod tests {
     #[test]
     fn respects_gitignore() {
         let dir = TempDir::new().unwrap();
+        write_file(&dir, ".gitignore", "ignored.rs");
+        write_file(&dir, "ignored.rs", "// TODO: should be ignored");
+        assert!(
+            collect_findings(&config_for_dir(&dir)).is_empty(),
+            "gitignored file should not be scanned"
+        );
+    }
 
-        // Write a .gitignore that excludes ignored.rs
-        let mut gi = std::fs::File::create(dir.path().join(".gitignore")).unwrap();
-        writeln!(gi, "ignored.rs").unwrap();
+    #[test]
+    fn no_gitignore_flag_scans_ignored_files() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, ".gitignore", "ignored.rs");
+        write_file(&dir, "ignored.rs", "// TODO: should appear now");
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--no-gitignore"]));
+        assert_eq!(findings.len(), 1);
+    }
 
-        // Write the ignored file with a TODO
-        let mut ig = std::fs::File::create(dir.path().join("ignored.rs")).unwrap();
-        writeln!(ig, "// TODO: should be ignored").unwrap();
+    // ── include / exclude globs ───────────────────────────────────────────────
 
-        let findings = collect_findings(&config_for_dir(&dir));
-        assert!(findings.is_empty(), "gitignored file should not be scanned");
+    #[test]
+    fn include_glob_filters_to_matching_extension() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "a.rs", "// TODO: rust");
+        write_file(&dir, "b.py", "# TODO: python");
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--include", "*.rs"]));
+        assert_eq!(findings.len(), 1);
+        assert!(findings[0].file.to_str().unwrap().ends_with(".rs"));
+    }
+
+    #[test]
+    fn exclude_glob_skips_matching_files() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "keep.rs", "// TODO: keep");
+        write_file(&dir, "skip.rs", "// TODO: skip");
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--exclude", "skip.rs"]));
+        assert_eq!(findings.len(), 1);
+        assert!(findings[0].file.to_str().unwrap().contains("keep"));
+    }
+
+    // ── hidden files ──────────────────────────────────────────────────────────
+
+    #[test]
+    fn hidden_files_skipped_by_default() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, ".hidden.rs", "// TODO: hidden");
+        assert!(collect_findings(&config_for_dir(&dir)).is_empty());
+    }
+
+    #[test]
+    fn hidden_flag_includes_hidden_files() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, ".hidden.rs", "// TODO: hidden");
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--hidden"]));
+        assert_eq!(findings.len(), 1);
+    }
+
+    // ── max depth ─────────────────────────────────────────────────────────────
+
+    #[test]
+    fn max_depth_limits_traversal() {
+        let dir = TempDir::new().unwrap();
+        std::fs::create_dir_all(dir.path().join("a/b")).unwrap();
+        write_file(&dir, "top.rs", "// TODO: top level");
+        write_file(&dir, "a/mid.rs", "// TODO: mid level");
+        write_file(&dir, "a/b/deep.rs", "// TODO: deep level");
+
+        // depth=1 means only the root and its immediate children.
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--max-depth", "1"]));
+        for f in &findings {
+            let depth = f
+                .file
+                .strip_prefix(dir.path())
+                .unwrap()
+                .components()
+                .count();
+            assert!(depth <= 1, "depth {depth} > 1 for {:?}", f.file);
+        }
+    }
+
+    // ── tag filtering ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn tags_filter_limits_matches() {
+        let dir = TempDir::new().unwrap();
+        write_file(&dir, "f.rs", "// TODO: one\n// FIXME: two");
+        let findings = collect_findings(&config_for_dir_with(&dir, &["--tags", "fixme"]));
+        assert_eq!(findings.len(), 1);
+        assert_eq!(findings[0].tag, "FIXME");
     }
 
     // ── empty config ──────────────────────────────────────────────────────────
