@@ -59,17 +59,6 @@ const GhIcon = () => (
   </svg>
 );
 
-const FilmIcon = () => (
-  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
-    <line x1="7" y1="2" x2="7" y2="22" /><line x1="17" y1="2" x2="17" y2="22" />
-    <line x1="2" y1="12" x2="22" y2="12" /><line x1="2" y1="7" x2="7" y2="7" />
-    <line x1="2" y1="17" x2="7" y2="17" /><line x1="17" y1="17" x2="22" y2="17" />
-    <line x1="17" y1="7" x2="22" y2="7" />
-  </svg>
-);
-
 // ── page component ────────────────────────────────────────────────────────────
 
 export default component$(() => {
@@ -297,12 +286,12 @@ export default component$(() => {
           <h2 class="section-title center">In the wild</h2>
           <div class="gif-grid">
             <div class="gif-card">
-              <div class="gif-frame"><FilmIcon /><span class="gif-frame-label">GIF coming soon</span></div>
+              <img src="/todork/todork.gif" alt="todork scanning a codebase" class="gif-img" />
               <div class="gif-caption">Generic scan</div>
               <div class="gif-sub">todork ./your-project</div>
             </div>
             <div class="gif-card">
-              <div class="gif-frame"><FilmIcon /><span class="gif-frame-label">GIF coming soon</span></div>
+              <img src="/todork/todork_blame.gif" alt="todork with --blame flag" class="gif-img" />
               <div class="gif-caption">Git blame enrichment</div>
               <div class="gif-sub">todork ./your-project --blame</div>
             </div>
