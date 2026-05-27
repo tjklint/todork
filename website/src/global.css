@@ -187,6 +187,12 @@ code {
   letter-spacing: .5px;
   margin-bottom: 24px;
 }
+.pronunciation-plain {
+  color: var(--text-sec);
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border-hi);
+}
 
 .hero-tagline {
   font-size: clamp(.95rem, 2.5vw, 1.12rem);
