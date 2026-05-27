@@ -188,10 +188,10 @@ code {
   margin-bottom: 24px;
 }
 .pronunciation-plain {
-  color: var(--text-sec);
+  color: var(--text-muted);
   margin-left: 10px;
   padding-left: 10px;
-  border-left: 1px solid var(--border-hi);
+  border-left: 1px solid var(--border);
 }
 
 .hero-tagline {
