@@ -16,8 +16,8 @@ type TermLine =
 
 interface Scene { tokens: CmdToken[]; lines: TermLine[] }
 
-// Scene 1 — plain scan: establishes speed and simplicity as the baseline
-// Scene 2 — --blame:   same three files, now author/age/hash appear
+// Scene 1 - plain scan: establishes speed and simplicity as the baseline
+// Scene 2 - --blame:   same three files, now author/age/hash appear
 //            the contrast between the two is the "aha" moment
 const SCENES: Scene[] = [
   {
@@ -25,7 +25,7 @@ const SCENES: Scene[] = [
     lines: [
       { t: 'finding', path: 'src/api/auth.rs',   loc: ':42:5:', tag: 'TODO',  cls: 't-todo',  msg: 'add rate limiting' },
       { t: 'gap' },
-      { t: 'finding', path: 'src/db/queries.rs', loc: ':17:3:', tag: 'FIXME', cls: 't-fixme', msg: 'N+1 query — fix before launch' },
+      { t: 'finding', path: 'src/db/queries.rs', loc: ':17:3:', tag: 'FIXME', cls: 't-fixme', msg: 'N+1 query - fix before launch' },
       { t: 'gap' },
       { t: 'finding', path: 'src/worker/job.rs', loc: ':89:9:', tag: 'HACK',  cls: 't-hack',  msg: 'retry logic needs rework' },
       { t: 'gap' },
@@ -38,7 +38,7 @@ const SCENES: Scene[] = [
       { t: 'finding', path: 'src/api/auth.rs',   loc: ':42:5:', tag: 'TODO',  cls: 't-todo',  msg: 'add rate limiting' },
       { t: 'blame',   author: 'alice <alice@example.com>', age: '8 months ago', hash: 'a3f9c12' },
       { t: 'gap' },
-      { t: 'finding', path: 'src/db/queries.rs', loc: ':17:3:', tag: 'FIXME', cls: 't-fixme', msg: 'N+1 query — fix before launch' },
+      { t: 'finding', path: 'src/db/queries.rs', loc: ':17:3:', tag: 'FIXME', cls: 't-fixme', msg: 'N+1 query - fix before launch' },
       { t: 'blame',   author: 'bob <bob@corp.dev>',          age: '2 weeks ago',  hash: 'f1a2b3c' },
       { t: 'gap' },
       { t: 'finding', path: 'src/worker/job.rs', loc: ':89:9:', tag: 'HACK',  cls: 't-hack',  msg: 'retry logic needs rework' },
@@ -119,7 +119,7 @@ export default component$(() => {
           if (revealedN.value < scene.lines.length) {
             revealedN.value++;
             const line = scene.lines[revealedN.value - 1];
-            // blame + gap snap in fast — they feel grouped with the finding above
+            // blame + gap snap in fast - they feel grouped with the finding above
             const delay = line.t === 'gap' ? 25 : line.t === 'blame' ? 45 : 115;
             tid = setTimeout(tick, delay);
           } else {
@@ -186,7 +186,7 @@ export default component$(() => {
           <h1 class="hero-name"><span class="name-accent">to</span>dork</h1>
           <p class="hero-tagline">
             Hyper-fast annotation scanner for codebases.{' '}
-            Find every TODO, FIXME, HACK and more&nbsp;— in milliseconds.
+            Find every TODO, FIXME, HACK and more&nbsp;- in milliseconds.
           </p>
 
           <div class="badge-row">
@@ -219,7 +219,7 @@ export default component$(() => {
                 <span class="tdot tdot-r" />
                 <span class="tdot tdot-y" />
                 <span class="tdot tdot-g" />
-                <span class="terminal-ttl">bash — ~/your-project</span>
+                <span class="terminal-ttl">bash - ~/your-project</span>
               </div>
 
               <div class="terminal-body" aria-live="polite" aria-label="Terminal demo">
@@ -230,7 +230,7 @@ export default component$(() => {
                   {cursorOnCmd && <span class="t-cursor" />}
                 </div>
 
-                {/* output lines — each fades in as it's revealed */}
+                {/* output lines - each fades in as it's revealed */}
                 {showOutput && (
                   <>
                     <span class="tl-gap" />
@@ -319,7 +319,7 @@ export default component$(() => {
           <div class="features-grid">
             <div class="feat-card"><span class="feat-icon">⚡</span><div><div class="feat-name">Ripgrep-class speed</div><div class="feat-desc">Parallel walks with <code>ignore::WalkParallel</code> and multi-pattern AhoCorasick matching.</div></div></div>
             <div class="feat-card"><span class="feat-icon">🦀</span><div><div class="feat-name">Written in Rust</div><div class="feat-desc">Zero-overhead abstractions, memory-safe by default, no runtime required.</div></div></div>
-            <div class="feat-card"><span class="feat-icon">🔍</span><div><div class="feat-name">8 annotation types</div><div class="feat-desc">TODO, FIXME, HACK, NOTE, BUG, OPTIMIZE, REVIEW, XXX — all configurable with <code>--tags</code>.</div></div></div>
+            <div class="feat-card"><span class="feat-icon">🔍</span><div><div class="feat-name">8 annotation types</div><div class="feat-desc">TODO, FIXME, HACK, NOTE, BUG, OPTIMIZE, REVIEW, XXX - all configurable with <code>--tags</code>.</div></div></div>
             <div class="feat-card"><span class="feat-icon">📋</span><div><div class="feat-name">Multiple output formats</div><div class="feat-desc">Human-readable text, machine-parseable JSON, and GitHub Annotations for CI.</div></div></div>
             <div class="feat-card"><span class="feat-icon">🔀</span><div><div class="feat-name">Git blame enrichment</div><div class="feat-desc">Add <code>--blame</code> to see who wrote each annotation, when, and which commit.</div></div></div>
             <div class="feat-card"><span class="feat-icon">⚙️</span><div><div class="feat-name">Fully configurable</div><div class="feat-desc">Glob patterns, depth limits, filesize caps, thread count, gitignore awareness.</div></div></div>
@@ -335,10 +335,10 @@ export default component$(() => {
           <p class="section-label center">get going</p>
           <h2 class="section-title center">Quick start</h2>
           <div class="qs-grid">
-            <div class="qs-card"><div class="qs-num">01 — INSTALL</div><div class="qs-code"><span class="q-prompt">$ </span>curl -fsSL …/install.sh | sh</div><div class="qs-desc">One-liner. Detects OS &amp; arch, verifies SHA-256, drops the binary in <code>~/.local/bin</code>.</div></div>
-            <div class="qs-card"><div class="qs-num">02 — SCAN</div><div class="qs-code"><span class="q-prompt">$ </span>todork ./src</div><div class="qs-desc">Scans recursively, respects <code>.gitignore</code>, prints every annotation found.</div></div>
-            <div class="qs-card"><div class="qs-num">03 — BLAME</div><div class="qs-code"><span class="q-prompt">$ </span>todork . --blame</div><div class="qs-desc">Enriches every result with author, age and commit hash via <code>git blame</code>.</div></div>
-            <div class="qs-card"><div class="qs-num">04 — CI</div><div class="qs-code"><span class="q-prompt">$ </span>todork . --format github-annotations</div><div class="qs-desc">Outputs native GitHub Annotations — results surface inline in PR diffs.</div></div>
+            <div class="qs-card"><div class="qs-num">01 - INSTALL</div><div class="qs-code"><span class="q-prompt">$ </span>curl -fsSL …/install.sh | sh</div><div class="qs-desc">One-liner. Detects OS &amp; arch, verifies SHA-256, drops the binary in <code>~/.local/bin</code>.</div></div>
+            <div class="qs-card"><div class="qs-num">02 - SCAN</div><div class="qs-code"><span class="q-prompt">$ </span>todork ./src</div><div class="qs-desc">Scans recursively, respects <code>.gitignore</code>, prints every annotation found.</div></div>
+            <div class="qs-card"><div class="qs-num">03 - BLAME</div><div class="qs-code"><span class="q-prompt">$ </span>todork . --blame</div><div class="qs-desc">Enriches every result with author, age and commit hash via <code>git blame</code>.</div></div>
+            <div class="qs-card"><div class="qs-num">04 - CI</div><div class="qs-code"><span class="q-prompt">$ </span>todork . --format github-annotations</div><div class="qs-desc">Outputs native GitHub Annotations - results surface inline in PR diffs.</div></div>
           </div>
         </div>
       </section>
@@ -364,7 +364,7 @@ export default component$(() => {
 });
 
 export const head: DocumentHead = {
-  title: 'todork — hyper-fast TODO scanner',
+  title: 'todork - hyper-fast TODO scanner',
   meta: [
     { name: 'description',        content: 'Scan your entire codebase for TODO, FIXME, HACK and more in milliseconds. Written in Rust. Open source. MIT licensed.' },
     { property: 'og:title',       content: 'todork' },

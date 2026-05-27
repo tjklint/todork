@@ -18,7 +18,7 @@
   --text-sec:     #94a3b8;
   --text-muted:   #64748b;
 
-  /* "Rust" orange — doubly fitting */
+  /* "Rust" orange - doubly fitting */
   --accent:       #f97316;
   --accent-dim:   rgba(249, 115, 22, 0.12);
   --accent-glow:  rgba(249, 115, 22, 0.22);
@@ -398,6 +398,7 @@ code {
   max-width: 680px;
   margin-left: auto;
   margin-right: auto;
+  text-align: left;
 }
 /* Reserve height for the tallest scene (blame, ~12 rows) so the
    terminal frame doesn't resize between animations.                 */
@@ -429,7 +430,7 @@ code {
   to   { opacity: 1; transform: translateY(0);   }
 }
 
-/* dim token — elapsed time in the summary line */
+/* dim token - elapsed time in the summary line */
 .t-dim { color: var(--text-muted); }
 
 /* ── reduced motion ──────────────────────────────────────────────── */
