@@ -262,7 +262,10 @@ fn http_zig_xxx_count() {
 
 #[test]
 fn http_zig_optimize_count() {
-    assert_eq!(count_in(&read_sample("samples/zig/http.zig"), "OPTIMIZE"), 1);
+    assert_eq!(
+        count_in(&read_sample("samples/zig/http.zig"), "OPTIMIZE"),
+        1
+    );
 }
 
 #[test]
@@ -274,22 +277,34 @@ fn http_zig_hack_count() {
 
 #[test]
 fn grover_qs_note_count() {
-    assert_eq!(count_in(&read_sample("samples/qsharp/Grover.qs"), "NOTE"), 1);
+    assert_eq!(
+        count_in(&read_sample("samples/qsharp/Grover.qs"), "NOTE"),
+        1
+    );
 }
 
 #[test]
 fn grover_qs_todo_count() {
-    assert_eq!(count_in(&read_sample("samples/qsharp/Grover.qs"), "TODO"), 1);
+    assert_eq!(
+        count_in(&read_sample("samples/qsharp/Grover.qs"), "TODO"),
+        1
+    );
 }
 
 #[test]
 fn grover_qs_fixme_count() {
-    assert_eq!(count_in(&read_sample("samples/qsharp/Grover.qs"), "FIXME"), 1);
+    assert_eq!(
+        count_in(&read_sample("samples/qsharp/Grover.qs"), "FIXME"),
+        1
+    );
 }
 
 #[test]
 fn grover_qs_hack_count() {
-    assert_eq!(count_in(&read_sample("samples/qsharp/Grover.qs"), "HACK"), 1);
+    assert_eq!(
+        count_in(&read_sample("samples/qsharp/Grover.qs"), "HACK"),
+        1
+    );
 }
 
 #[test]
@@ -390,14 +405,17 @@ fn total_zig_annotations() {
 
 #[test]
 fn total_qsharp_annotations() {
-    let files = [
-        "samples/qsharp/Grover.qs",
-        "samples/qsharp/Teleport.qs",
-    ];
+    let files = ["samples/qsharp/Grover.qs", "samples/qsharp/Teleport.qs"];
     let combined: String = files.iter().map(|f| read_sample(f)).collect();
     // Grover: NOTE+TODO+FIXME+HACK+XXX=5, Teleport: NOTE+TODO+OPTIMIZE+FIXME+DEPRECATED=5  ->  10
     let tags = [
-        "TODO", "FIXME", "HACK", "NOTE", "OPTIMIZE", "DEPRECATED", "XXX",
+        "TODO",
+        "FIXME",
+        "HACK",
+        "NOTE",
+        "OPTIMIZE",
+        "DEPRECATED",
+        "XXX",
     ];
     let total: usize = tags.iter().map(|t| count_in(&combined, t)).sum();
     assert_eq!(total, 10);

@@ -72,7 +72,10 @@ impl<W: WriteColor> TableFormatter<W> {
         let has_blame = findings.iter().any(|f| f.blame_author.is_some());
 
         // ── column widths ──────────────────────────────────────────────────────
-        let w_file = col_width(H_FILE, findings.iter().map(|f| f.file.display().to_string().len()));
+        let w_file = col_width(
+            H_FILE,
+            findings.iter().map(|f| f.file.display().to_string().len()),
+        );
         let w_line = col_width(H_LINE, findings.iter().map(|f| digit_count(f.line)));
         let w_tag = col_width(
             H_TAG,
@@ -84,8 +87,12 @@ impl<W: WriteColor> TableFormatter<W> {
                 }
             }),
         );
-        let w_sev = col_width(H_SEV, findings.iter().map(|f| severity_str(f.severity).len()));
-        let w_msg = col_width(H_MSG, findings.iter().map(|f| f.message.chars().count())).min(MAX_MSG);
+        let w_sev = col_width(
+            H_SEV,
+            findings.iter().map(|f| severity_str(f.severity).len()),
+        );
+        let w_msg =
+            col_width(H_MSG, findings.iter().map(|f| f.message.chars().count())).min(MAX_MSG);
 
         let (w_blame, w_age, w_commit) = if has_blame {
             let wb = col_width(
@@ -192,12 +199,7 @@ impl<W: WriteColor> TableFormatter<W> {
 
             // SEVERITY - same color as tag
             self.set(&tag_color(f.severity))?;
-            write!(
-                self.writer,
-                "  {:<w$}",
-                severity_str(f.severity),
-                w = w_sev
-            )?;
+            write!(self.writer, "  {:<w$}", severity_str(f.severity), w = w_sev)?;
             self.reset()?;
 
             // MESSAGE - truncated with ellipsis if needed
@@ -400,7 +402,14 @@ mod tests {
 
     #[test]
     fn author_annotation_rendered_in_tag_column() {
-        let f = make_finding("a.rs", 1, "TODO", Severity::Warning, Some("alice"), "refactor");
+        let f = make_finding(
+            "a.rs",
+            1,
+            "TODO",
+            Severity::Warning,
+            Some("alice"),
+            "refactor",
+        );
         let out = render(&[f]);
         assert!(out.contains("TODO(alice)"));
     }
@@ -430,7 +439,10 @@ mod tests {
         assert!(!out.contains("COMMIT"));
         // Verify the blame header specifically is absent
         let header_line = out.lines().next().unwrap_or("");
-        assert!(!header_line.contains("BLAME"), "blame header should not appear");
+        assert!(
+            !header_line.contains("BLAME"),
+            "blame header should not appear"
+        );
     }
 
     #[test]
@@ -452,7 +464,14 @@ mod tests {
         // Multiple findings; check that lines have consistent length up to message col.
         let findings = vec![
             make_finding("short.rs", 1, "TODO", Severity::Warning, None, "msg"),
-            make_finding("a/longer/path/file.rs", 999, "FIXME", Severity::Error, None, "other"),
+            make_finding(
+                "a/longer/path/file.rs",
+                999,
+                "FIXME",
+                Severity::Error,
+                None,
+                "other",
+            ),
         ];
         let out = render(&findings);
         let lines: Vec<&str> = out.lines().collect();
