@@ -86,6 +86,17 @@ pub struct Finding {
     pub author: Option<String>,
     /// The text that follows the tag marker on the same line.
     pub message: String,
+
+    // ── git blame fields (populated only when --blame is used) ────────────────
+    /// Git blame author for this line, e.g. `"Alice Smith <alice@example.com>"`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blame_author: Option<String>,
+    /// Unix timestamp of the commit that last modified this line.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blame_date: Option<i64>,
+    /// Short (7-character) commit SHA.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blame_commit: Option<String>,
 }
 
 // ── Matcher ───────────────────────────────────────────────────────────────────
@@ -175,6 +186,9 @@ impl Matcher {
                 severity: tag.severity,
                 author,
                 message,
+                blame_author: None,
+                blame_date: None,
+                blame_commit: None,
             });
         }
 
