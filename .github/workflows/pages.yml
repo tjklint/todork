@@ -40,10 +40,12 @@ jobs:
         working-directory: website
         run: npm run build
 
-      # The static adapter outputs to website/dist/
+      # Vite outputs under dist/todork/ because base='/todork/'.
+      # The Pages artifact root maps to https://tjklint.github.io/todork/,
+      # so upload the subdirectory directly to avoid a /todork/todork/ double prefix.
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: website/dist
+          path: website/dist/todork
 
   # ── 2. Deploy ─────────────────────────────────────────────────────
   deploy:
