@@ -184,7 +184,7 @@ export default component$(() => {
         <div class="container">
           <p class="hero-eyebrow">Rust · Open Source · MIT</p>
           <h1 class="hero-name"><span class="name-accent">to</span>dork</h1>
-          <p class="hero-pronunciation">/ ˈtuː.dɔːrk / <span class="pronunciation-plain">TOO-dork</span></p>
+          <p class="hero-pronunciation">/ ˈtuː.dɔːrk / <span class="pronunciation-plain"> TOO-dork</span></p>
           <p class="hero-tagline">
             Hyper-fast annotation scanner for codebases.{' '}
             Find every TODO, FIXME, HACK and more&nbsp;- in milliseconds.
