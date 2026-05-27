@@ -28,6 +28,7 @@ use termcolor::{ColorChoice, StandardStream};
 /// [`ExitCode::NotFound`] when none are found (or when `--exit-zero` is set
 /// and no annotations were found).
 pub fn run(config: Config) -> anyhow::Result<ExitCode> {
+    let started = std::time::Instant::now();
     let tags = if config.tags.is_empty() {
         DEFAULT_TAGS.to_vec()
     } else {
@@ -63,7 +64,7 @@ pub fn run(config: Config) -> anyhow::Result<ExitCode> {
             let use_colour = colour_choice != ColorChoice::Never;
             let stdout = StandardStream::stdout(colour_choice);
             let mut fmt = TextFormatter::new(stdout, use_colour);
-            fmt.write_all(&all_findings)?;
+            fmt.write_all(&all_findings, started.elapsed())?;
         }
         Format::Json => {
             let mut stdout = std::io::stdout();
