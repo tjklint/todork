@@ -103,21 +103,6 @@ code {
   color: var(--text);
   letter-spacing: -.3px;
 }
-.logo-mark {
-  width: 22px;
-  height: 22px;
-  background: #0a0e1a;
-  border: 1.5px solid rgba(249, 115, 22, 0.6);
-  border-radius: 5px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 900;
-  color: var(--accent);
-  flex-shrink: 0;
-  font-family: var(--mono);
-}
 .gh-btn {
   display: inline-flex;
   align-items: center;

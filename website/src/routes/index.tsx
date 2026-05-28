@@ -280,7 +280,7 @@ export default component$(() => {
         <div class="container">
           <div class="nav-inner">
             <a class="nav-logo" href="/todork/" style="text-decoration:none">
-              <span class="logo-mark">t</span> todork
+              <img src="/todork/favicon.svg" width="22" height="22" alt="" aria-hidden="true" /> todork
             </a>
             <a class="gh-btn" href={GH} target="_blank" rel="noopener noreferrer">
               <GhIcon /> GitHub
