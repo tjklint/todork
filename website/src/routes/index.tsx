@@ -280,7 +280,7 @@ export default component$(() => {
         <div class="container">
           <div class="nav-inner">
             <a class="nav-logo" href="/todork/" style="text-decoration:none">
-              <span class="logo-mark">td</span> todork
+              <span class="logo-mark">t</span> todork
             </a>
             <a class="gh-btn" href={GH} target="_blank" rel="noopener noreferrer">
               <GhIcon /> GitHub
@@ -477,6 +477,7 @@ export const head: DocumentHead = {
     { name: 'twitter:card',       content: 'summary' },
   ],
   links: [
+    { rel: 'icon', type: 'image/svg+xml', href: '/todork/favicon.svg' },
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
     { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
     {
