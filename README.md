@@ -1,12 +1,13 @@
-# todork
+<h1 align="center">todork</h1>
+
+| Default scan | With `--blame` |
+|:---:|:---:|
+| ![todork scan demo](samples/todork.gif) | ![todork blame demo](samples/todork_blame.gif) |
 
 > Hyper-fast CLI scanner for TODO, FIXME, HACK, and other annotation comments in your codebase.
 
 [![CI](https://github.com/tjklint/todork/actions/workflows/ci.yml/badge.svg)](https://github.com/tjklint/todork/actions/workflows/ci.yml)
-
-![todork scan demo](samples/todork.gif)
-
-![todork blame demo](samples/todork_blame.gif)
+[![MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
 ---
 
@@ -32,7 +33,7 @@ curl -fsSL https://raw.githubusercontent.com/tjklint/todork/main/install.sh | sh
 Set `TODORK_VERSION` to pin a specific release:
 
 ```sh
-TODORK_VERSION=0.1.0 curl -fsSL https://raw.githubusercontent.com/tjklint/todork/main/install.sh | sh
+TODORK_VERSION=1.0.0 curl -fsSL https://raw.githubusercontent.com/tjklint/todork/main/install.sh | sh
 ```
 
 ### Pre-built binaries
@@ -147,4 +148,4 @@ Use `--exit-zero` to always exit `0` (useful for non-blocking CI reporting).
 
 ## License
 
-Licensed under either of [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE) at your option.
+[MIT](LICENSE) © TJ Klint
