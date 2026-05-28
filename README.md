@@ -9,8 +9,6 @@
 [![CI](https://github.com/tjklint/todork/actions/workflows/ci.yml/badge.svg)](https://github.com/tjklint/todork/actions/workflows/ci.yml)
 [![MIT License](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 
----
-
 ## Features
 
 - ⚡ **Blazing fast** — parallel file walking powered by the same engine as [ripgrep](https://github.com/BurntSushi/ripgrep)
@@ -19,8 +17,6 @@
 - 📄 JSON and GitHub Actions annotation output formats
 - 🚫 Respects `.gitignore` by default
 - 💾 No Rust required to install — grab a pre-built binary
-
----
 
 ## Installation
 
@@ -54,8 +50,6 @@ Download the latest release from the [Releases page](https://github.com/tjklint/
 cargo install --git https://github.com/tjklint/todork
 ```
 
----
-
 ## Usage
 
 ```sh
@@ -80,8 +74,6 @@ todork . --include "*.py"
 # GitHub Actions annotation output
 todork . --format github-annotations
 ```
-
----
 
 ## Output formats
 
@@ -117,8 +109,6 @@ Found 3 annotations across 3 files.
 ::warning file=src/utils.rs,line=17,col=3,title=TODO::refactor into smaller functions
 ```
 
----
-
 ## Exit codes
 
 | Code | Meaning |
@@ -128,8 +118,6 @@ Found 3 annotations across 3 files.
 | `2` | Fatal error (bad arguments, I/O failure) |
 
 Use `--exit-zero` to always exit `0` (useful for non-blocking CI reporting).
-
----
 
 ## Default tags
 
@@ -143,8 +131,6 @@ Use `--exit-zero` to always exit `0` (useful for non-blocking CI reporting).
 | `DEPRECATED` | Warning |
 | `NOTE` | Info |
 | `OPTIMIZE` | Info |
-
----
 
 ## License
 
