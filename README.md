@@ -4,6 +4,10 @@
 
 [![CI](https://github.com/tjklint/todork/actions/workflows/ci.yml/badge.svg)](https://github.com/tjklint/todork/actions/workflows/ci.yml)
 
+![todork scan demo](samples/todork.gif)
+
+![todork blame demo](samples/todork_blame.gif)
+
 ---
 
 ## Features

@@ -59,6 +59,127 @@ const GhIcon = () => (
   </svg>
 );
 
+// ── DemoTerminal — runs once on scroll into view ──────────────────────────────
+
+const DemoTerminal = component$<{ scene: Scene; ttl: string; startDelay?: number }>(
+  ({ scene, ttl, startDelay = 600 }) => {
+    const typedLen  = useSignal(0);
+    const revealedN = useSignal(0);
+    const isRunning = useSignal(false);
+    const isDone    = useSignal(false);
+
+    useVisibleTask$(({ cleanup }) => {
+      const cmdLen = scene.tokens.reduce((a, t) => a + t.text.length, 0);
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        typedLen.value  = cmdLen;
+        revealedN.value = scene.lines.length;
+        isDone.value    = true;
+        return;
+      }
+
+      let tid: ReturnType<typeof setTimeout>;
+      let localPhase: 'typing' | 'running' | 'revealing' = 'typing';
+
+      const tick = () => {
+        switch (localPhase) {
+          case 'typing':
+            if (typedLen.value < cmdLen) {
+              typedLen.value++;
+              tid = setTimeout(tick, 55 + Math.random() * 40);
+            } else {
+              localPhase = 'running';
+              isRunning.value = true;
+              tid = setTimeout(tick, 520);
+            }
+            break;
+          case 'running':
+            localPhase = 'revealing';
+            isRunning.value = false;
+            tid = setTimeout(tick, 40);
+            break;
+          case 'revealing':
+            if (revealedN.value < scene.lines.length) {
+              revealedN.value++;
+              const line = scene.lines[revealedN.value - 1];
+              const d = line.t === 'gap' ? 25 : line.t === 'blame' ? 45 : 115;
+              tid = setTimeout(tick, d);
+            } else {
+              isDone.value = true;
+            }
+            break;
+        }
+      };
+
+      tid = setTimeout(tick, startDelay);
+      cleanup(() => clearTimeout(tid));
+    });
+
+    const cmdLen      = scene.tokens.reduce((a, t) => a + t.text.length, 0);
+    const typing      = typedLen.value < cmdLen;
+    const cursorOnCmd = typing || isRunning.value;
+    const showOutput  = !typing && !isRunning.value;
+
+    let rem = typedLen.value;
+    const cmdNodes = scene.tokens.map((tok, i) => {
+      if (rem <= 0) return null;
+      const vis = tok.text.slice(0, Math.min(rem, tok.text.length));
+      rem = Math.max(0, rem - tok.text.length);
+      return vis ? <span key={i} class={tok.cls ?? 't-cmd'}>{vis}</span> : null;
+    });
+
+    return (
+      <div class="terminal-wrap">
+        <div class="terminal-bar">
+          <span class="tdot tdot-r" /><span class="tdot tdot-y" /><span class="tdot tdot-g" />
+          <span class="terminal-ttl">{ttl}</span>
+        </div>
+        <div class="terminal-body" aria-live="polite">
+          <div class="tl">
+            <span class="t-prompt">$ </span>
+            {cmdNodes}
+            {cursorOnCmd && <span class="t-cursor" />}
+          </div>
+          {showOutput && (
+            <>
+              <span class="tl-gap" />
+              {scene.lines.slice(0, revealedN.value).map((line, i) => {
+                if (line.t === 'gap') return <span key={i} class="tl-gap" />;
+                if (line.t === 'finding') return (
+                  <div key={i} class="tl tl-in">
+                    <span class="t-path">{line.path}</span>
+                    <span class="t-sep">{line.loc} </span>
+                    <span class={line.cls}>{line.tag}</span>
+                    <span class="t-msg">: {line.msg}</span>
+                  </div>
+                );
+                if (line.t === 'blame') return (
+                  <div key={i} class="tl tl-in">
+                    <span class="t-tree">  └─ </span>
+                    <span class="t-author">{line.author}</span>
+                    <span class="t-sep">  ·  </span>
+                    <span class="t-age">{line.age}</span>
+                    <span class="t-sep">  </span>
+                    <span class="t-hash">({line.hash})</span>
+                  </div>
+                );
+                if (line.t === 'summary') return (
+                  <div key={i} class="tl tl-in">
+                    <span class="t-found">{line.label}</span>
+                    <span class="t-dim">  {line.time}</span>
+                  </div>
+                );
+                return null;
+              })}
+              {isDone.value && <div class="tl"><span class="t-cursor" /></div>}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+);
+
 // ── page component ────────────────────────────────────────────────────────────
 
 export default component$(() => {
@@ -284,17 +405,9 @@ export default component$(() => {
         <div class="container">
           <p class="section-label center">see it run</p>
           <h2 class="section-title center">In the wild</h2>
-          <div class="gif-grid">
-            <div class="gif-card">
-              <img src="/todork/todork.gif" alt="todork scanning a codebase" class="gif-img" />
-              <div class="gif-caption">Generic scan</div>
-              <div class="gif-sub">todork ./your-project</div>
-            </div>
-            <div class="gif-card">
-              <img src="/todork/todork_blame.gif" alt="todork with --blame flag" class="gif-img" />
-              <div class="gif-caption">Git blame enrichment</div>
-              <div class="gif-sub">todork ./your-project --blame</div>
-            </div>
+          <div class="demo-stack">
+            <DemoTerminal scene={SCENES[0]} ttl="bash - ~/your-project" startDelay={400} />
+            <DemoTerminal scene={SCENES[1]} ttl="bash - ~/your-project" startDelay={800} />
           </div>
         </div>
       </section>
@@ -365,7 +478,7 @@ export const head: DocumentHead = {
   ],
   links: [
     { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+    { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
     {
       rel: 'stylesheet',
       href: 'https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;700&display=swap',
