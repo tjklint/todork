@@ -416,6 +416,7 @@ code {
   border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 20px 22px;
+  min-width: 0;
   transition: border-color .2s;
 }
 .qs-card:hover { border-color: var(--border-hi); }
