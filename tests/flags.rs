@@ -513,3 +513,39 @@ fn sort_short_flag_works() {
         .assert()
         .success();
 }
+
+// ── todork upgrade ────────────────────────────────────────────────────────────
+
+#[test]
+fn upgrade_subcommand_is_recognised() {
+    // Without a network, upgrade will fail — but argument parsing must succeed,
+    // which means the binary should not exit with code 2 (bad args).
+    let output = todork().arg("upgrade").output().unwrap();
+    let exit = output.status.code().unwrap_or(-1);
+    assert_ne!(exit, 2, "upgrade should be a recognised subcommand, not an unknown arg");
+}
+
+#[test]
+fn help_subcommand_exits_zero() {
+    todork().arg("help").assert().success();
+}
+
+#[test]
+fn help_flag_exits_zero() {
+    todork().arg("--help").assert().success();
+}
+
+#[test]
+fn version_flag_exits_zero() {
+    todork().arg("--version").assert().success();
+}
+
+#[test]
+fn upgrade_help_shows_description() {
+    let output = todork().args(["help", "upgrade"]).output().unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert!(
+        stdout.contains("Upgrade") || stdout.contains("upgrade"),
+        "help upgrade should describe the upgrade command"
+    );
+}
