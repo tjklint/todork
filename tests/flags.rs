@@ -522,7 +522,10 @@ fn upgrade_subcommand_is_recognised() {
     // which means the binary should not exit with code 2 (bad args).
     let output = todork().arg("upgrade").output().unwrap();
     let exit = output.status.code().unwrap_or(-1);
-    assert_ne!(exit, 2, "upgrade should be a recognised subcommand, not an unknown arg");
+    assert_ne!(
+        exit, 2,
+        "upgrade should be a recognised subcommand, not an unknown arg"
+    );
 }
 
 #[test]

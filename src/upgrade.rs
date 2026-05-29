@@ -164,7 +164,11 @@ fn install_binary(binary: &[u8], target: &std::path::Path) -> anyhow::Result<()>
             // print instructions instead of erroring out.
             eprintln!("Could not replace binary automatically: {e}");
             eprintln!("New binary saved to: {}", temp.display());
-            eprintln!("Replace manually:  move \"{}\" \"{}\"", temp.display(), target.display());
+            eprintln!(
+                "Replace manually:  move \"{}\" \"{}\"",
+                temp.display(),
+                target.display()
+            );
             Ok(())
         }
     }
