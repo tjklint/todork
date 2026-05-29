@@ -69,6 +69,11 @@ pub struct Args {
     /// No-ops silently on non-git directories.
     #[arg(long)]
     pub blame: bool,
+
+    /// Sort order for findings.
+    /// `oldest` and `newest` sort by git blame date and imply `--blame`.
+    #[arg(long, short = 's', value_enum, default_value = "path")]
+    pub sort: SortOrder,
 }
 
 /// Output format selection.
@@ -83,6 +88,17 @@ pub enum Format {
     /// GitHub Actions workflow commands (::warning / ::error / ::notice).
     #[value(name = "github-annotations")]
     GithubAnnotations,
+}
+
+/// Sort order for findings.
+#[derive(ValueEnum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SortOrder {
+    /// Sort by file path, then line number (default).
+    Path,
+    /// Sort by git blame date ascending — oldest annotations first. Implies `--blame`.
+    Oldest,
+    /// Sort by git blame date descending — newest annotations first. Implies `--blame`.
+    Newest,
 }
 
 /// Colour output control.
@@ -209,5 +225,29 @@ mod tests {
     fn blame_flag() {
         let args = Args::parse_from(["todork", "--blame"]);
         assert!(args.blame);
+    }
+
+    #[test]
+    fn sort_default_is_path() {
+        let args = Args::parse_from(["todork"]);
+        assert_eq!(args.sort, SortOrder::Path);
+    }
+
+    #[test]
+    fn sort_oldest_parsed() {
+        let args = Args::parse_from(["todork", "--sort", "oldest"]);
+        assert_eq!(args.sort, SortOrder::Oldest);
+    }
+
+    #[test]
+    fn sort_newest_parsed() {
+        let args = Args::parse_from(["todork", "--sort", "newest"]);
+        assert_eq!(args.sort, SortOrder::Newest);
+    }
+
+    #[test]
+    fn sort_short_flag() {
+        let args = Args::parse_from(["todork", "-s", "newest"]);
+        assert_eq!(args.sort, SortOrder::Newest);
     }
 }

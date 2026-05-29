@@ -417,3 +417,99 @@ fn threads_1_produces_same_results_as_default() {
 
     assert_eq!(arr_default, arr_1thread);
 }
+
+// ── --sort ────────────────────────────────────────────────────────────────────
+
+#[test]
+fn sort_path_is_default_and_ordered_by_file_then_line() {
+    let dir = TempDir::new().unwrap();
+    write_file(&dir, "b.rs", "// TODO: second file");
+    write_file(&dir, "a.rs", "// TODO: first file");
+    let out = todork()
+        .args([dir.path().to_str().unwrap(), "--format", "json"])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(arr.len(), 2);
+    assert!(
+        arr[0]["file"].as_str().unwrap() < arr[1]["file"].as_str().unwrap(),
+        "default sort should order by file path"
+    );
+}
+
+#[test]
+fn sort_path_explicit_matches_default() {
+    let dir = TempDir::new().unwrap();
+    write_file(&dir, "a.rs", "// TODO: line 1\n// FIXME: line 2");
+    let out_default = todork()
+        .args([dir.path().to_str().unwrap(), "--format", "json"])
+        .output()
+        .unwrap();
+    let out_explicit = todork()
+        .args([
+            dir.path().to_str().unwrap(),
+            "--format",
+            "json",
+            "--sort",
+            "path",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out_default.stdout, out_explicit.stdout);
+}
+
+#[test]
+fn sort_oldest_produces_same_findings_as_default() {
+    // Without a git repo, blame_date is None for all findings.
+    // Stable sort keeps count equal; we just verify no findings are lost.
+    let dir = TempDir::new().unwrap();
+    write_file(&dir, "a.rs", "// TODO: alpha");
+    write_file(&dir, "b.rs", "// TODO: beta");
+    let out = todork()
+        .args([
+            dir.path().to_str().unwrap(),
+            "--format",
+            "json",
+            "--sort",
+            "oldest",
+        ])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(arr.len(), 2, "--sort oldest should not drop any findings");
+}
+
+#[test]
+fn sort_newest_produces_same_findings_as_default() {
+    let dir = TempDir::new().unwrap();
+    write_file(&dir, "a.rs", "// TODO: alpha");
+    write_file(&dir, "b.rs", "// TODO: beta");
+    let out = todork()
+        .args([
+            dir.path().to_str().unwrap(),
+            "--format",
+            "json",
+            "--sort",
+            "newest",
+        ])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(arr.len(), 2, "--sort newest should not drop any findings");
+}
+
+#[test]
+fn sort_short_flag_works() {
+    let dir = TempDir::new().unwrap();
+    write_file(&dir, "a.rs", "// TODO: test");
+    todork()
+        .args([
+            dir.path().to_str().unwrap(),
+            "--format",
+            "json",
+            "-s",
+            "oldest",
+        ])
+        .assert()
+        .success();
+}

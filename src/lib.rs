@@ -8,7 +8,7 @@ pub mod matcher;
 pub mod scanner;
 pub mod walker;
 
-use crate::cli::{ColorWhen, Format};
+use crate::cli::{ColorWhen, Format, SortOrder};
 use crate::config::Config;
 use crate::exit_code::ExitCode;
 use crate::formatter::github::GithubFormatter;
@@ -50,12 +50,33 @@ pub fn run(config: Config) -> anyhow::Result<ExitCode> {
         .join()
         .expect("walker thread should not panic")?;
 
-    // Sort deterministically: by file path, then by line number.
-    all_findings.sort_unstable_by(|a, b| a.file.cmp(&b.file).then_with(|| a.line.cmp(&b.line)));
-
     // ── git blame enrichment (opt-in) ─────────────────────────────────────────
     if config.blame && !all_findings.is_empty() {
         blame::enrich_with_blame(&mut all_findings, &config.paths[0]);
+    }
+
+    // ── sort ──────────────────────────────────────────────────────────────────
+    match config.sort {
+        SortOrder::Path => {
+            all_findings
+                .sort_unstable_by(|a, b| a.file.cmp(&b.file).then_with(|| a.line.cmp(&b.line)));
+        }
+        SortOrder::Oldest => {
+            all_findings.sort_unstable_by(|a, b| {
+                a.blame_date
+                    .cmp(&b.blame_date)
+                    .then_with(|| a.file.cmp(&b.file))
+                    .then_with(|| a.line.cmp(&b.line))
+            });
+        }
+        SortOrder::Newest => {
+            all_findings.sort_unstable_by(|a, b| {
+                b.blame_date
+                    .cmp(&a.blame_date)
+                    .then_with(|| a.file.cmp(&b.file))
+                    .then_with(|| a.line.cmp(&b.line))
+            });
+        }
     }
 
     // ── output ────────────────────────────────────────────────────────────────
