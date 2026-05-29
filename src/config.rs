@@ -1,4 +1,4 @@
-use crate::cli::{Args, ColorWhen, Format};
+use crate::cli::{Args, ColorWhen, Format, SortOrder};
 use crate::error::TodorkError;
 use crate::matcher::{Tag, DEFAULT_TAGS};
 use crate::scanner::DEFAULT_MAX_FILE_SIZE;
@@ -34,6 +34,8 @@ pub struct Config {
     pub exit_zero: bool,
     /// When true, enrich findings with git blame data.
     pub blame: bool,
+    /// Sort order applied to findings before output.
+    pub sort: SortOrder,
 }
 
 impl Config {
@@ -59,6 +61,8 @@ impl Config {
             None => num_cpus::get(),
         };
 
+        let blame = args.blame || matches!(args.sort, SortOrder::Oldest | SortOrder::Newest);
+
         Ok(Self {
             paths: args.paths,
             format: args.format,
@@ -72,7 +76,8 @@ impl Config {
             threads,
             color: args.color,
             exit_zero: args.exit_zero,
-            blame: args.blame,
+            blame,
+            sort: args.sort,
         })
     }
 }
@@ -344,5 +349,32 @@ mod tests {
     #[test]
     fn blame_flag_sets_true() {
         assert!(parse(&["todork", "--blame"]).blame);
+    }
+
+    // ── sort ──────────────────────────────────────────────────────────────────
+
+    #[test]
+    fn sort_default_is_path() {
+        assert_eq!(parse(&["todork"]).sort, SortOrder::Path);
+    }
+
+    #[test]
+    fn sort_oldest_implies_blame() {
+        let c = parse(&["todork", "--sort", "oldest"]);
+        assert_eq!(c.sort, SortOrder::Oldest);
+        assert!(c.blame, "--sort oldest should imply --blame");
+    }
+
+    #[test]
+    fn sort_newest_implies_blame() {
+        let c = parse(&["todork", "--sort", "newest"]);
+        assert_eq!(c.sort, SortOrder::Newest);
+        assert!(c.blame, "--sort newest should imply --blame");
+    }
+
+    #[test]
+    fn sort_path_does_not_imply_blame() {
+        let c = parse(&["todork", "--sort", "path"]);
+        assert!(!c.blame);
     }
 }
