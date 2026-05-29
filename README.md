@@ -73,7 +73,28 @@ todork . --include "*.py"
 
 # GitHub Actions annotation output
 todork . --format github-annotations
+
+# Show all flags and options
+todork --help
+
+# Upgrade to the latest release
+todork upgrade
 ```
+
+## Upgrading
+
+`todork upgrade` checks GitHub for a newer release, downloads the right binary for your platform, and replaces the current executable in place — no need to re-run the install script.
+
+```sh
+todork upgrade
+# Checking for updates...
+# Update available: 1.0.0 → 1.1.0
+# Downloading todork-1.1.0-x86_64-unknown-linux-musl.tar.gz...
+# Extracting...
+# Upgraded to todork 1.1.0
+```
+
+On Windows the replacement may require moving the downloaded binary manually; the command prints the exact `move` command if that happens.
 
 ## Output formats
 
