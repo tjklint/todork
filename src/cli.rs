@@ -1,5 +1,12 @@
-use clap::{Parser, ValueEnum};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
+
+/// Available subcommands.
+#[derive(Subcommand, Debug, Clone, PartialEq, Eq)]
+pub enum Command {
+    /// Upgrade todork to the latest release.
+    Upgrade,
+}
 
 /// todork — hyper-fast annotation scanner.
 ///
@@ -11,9 +18,13 @@ use std::path::PathBuf;
     version,
     about,
     long_about = None,
-    after_help = "Examples:\n  todork .\n  todork src/ --format json\n  todork . --tags todo,fixme\n  todork . --include '*.rs' --exclude 'tests/*'"
+    after_help = "Examples:\n  todork .\n  todork src/ --format json\n  todork . --tags todo,fixme\n  todork . --include '*.rs' --exclude 'tests/*'\n  todork upgrade"
 )]
 pub struct Args {
+    /// Subcommand to run instead of scanning.
+    #[command(subcommand)]
+    pub command: Option<Command>,
+
     /// Paths to scan (files or directories). Defaults to the current directory.
     #[arg(default_value = ".")]
     pub paths: Vec<PathBuf>,
@@ -249,5 +260,17 @@ mod tests {
     fn sort_short_flag() {
         let args = Args::parse_from(["todork", "-s", "newest"]);
         assert_eq!(args.sort, SortOrder::Newest);
+    }
+
+    #[test]
+    fn no_subcommand_defaults_to_none() {
+        let args = Args::parse_from(["todork"]);
+        assert!(args.command.is_none());
+    }
+
+    #[test]
+    fn upgrade_subcommand_parsed() {
+        let args = Args::parse_from(["todork", "upgrade"]);
+        assert_eq!(args.command, Some(Command::Upgrade));
     }
 }

@@ -6,6 +6,7 @@ pub mod exit_code;
 pub mod formatter;
 pub mod matcher;
 pub mod scanner;
+pub mod upgrade;
 pub mod walker;
 
 use crate::cli::{ColorWhen, Format, SortOrder};
