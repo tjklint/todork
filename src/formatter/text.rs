@@ -161,7 +161,7 @@ impl<W: WriteColor> TextFormatter<W> {
         if total_count > findings.len() {
             write!(
                 self.writer,
-                "  (showing first {} of {})",
+                " (showing first {} of {})",
                 findings.len(),
                 total_count,
             )?;
@@ -320,8 +320,7 @@ mod tests {
     fn summary_shows_truncation_note() {
         let findings = vec![make_finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "x")];
         let out = render_with_total(&findings, 5);
-        assert!(out.contains("Found 1 annotation across 1 file."));
-        assert!(out.contains("(showing first 1 of 5)"));
+        assert!(out.contains("Found 1 annotation across 1 file (showing first 1 of 5)."));
     }
 
     #[test]
