@@ -15,7 +15,7 @@ pub enum Command {
 #[derive(Parser, Debug, Clone)]
 #[command(
     name = "todork",
-    version = env!("TODORK_VERSION"),
+    version = env!("CARGO_PKG_VERSION"),
     about,
     long_about = None,
     after_help = "Examples:\n  todork .\n  todork src/ --format json\n  todork . --tags todo,fixme\n  todork . --include '*.rs' --exclude 'tests/*'\n  todork upgrade"

@@ -3,12 +3,6 @@ use todork::cli::{Args, Command};
 use todork::config::Config;
 use todork::exit_code::ExitCode;
 
-// Include the generated version file so the binary is recompiled when the
-// package version changes. The constant itself is not used here.
-mod _version {
-    include!(concat!(env!("OUT_DIR"), "/version.rs"));
-}
-
 fn main() -> std::process::ExitCode {
     let args = Args::parse();
 
