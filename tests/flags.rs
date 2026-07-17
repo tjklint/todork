@@ -545,7 +545,11 @@ fn limit_larger_than_total_returns_all() {
         .output()
         .unwrap();
     let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(arr.len(), 41, "--limit above total count should not invent findings");
+    assert_eq!(
+        arr.len(),
+        41,
+        "--limit above total count should not invent findings"
+    );
 }
 
 #[test]

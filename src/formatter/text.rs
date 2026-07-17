@@ -318,7 +318,15 @@ mod tests {
 
     #[test]
     fn summary_shows_truncation_note() {
-        let findings = vec![make_finding("a.rs", 1, 1, "TODO", Severity::Warning, None, "x")];
+        let findings = vec![make_finding(
+            "a.rs",
+            1,
+            1,
+            "TODO",
+            Severity::Warning,
+            None,
+            "x",
+        )];
         let out = render_with_total(&findings, 5);
         assert!(out.contains("Found 1 annotation across 1 file (showing first 1 of 5)."));
     }
