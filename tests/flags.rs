@@ -514,6 +514,58 @@ fn sort_short_flag_works() {
         .success();
 }
 
+// ── --limit ──────────────────────────────────────────────────────────────────
+
+#[test]
+fn limit_caps_json_output() {
+    let output = todork()
+        .args([&samples_dir(), "--format", "json", "--limit", "5"])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(arr.len(), 5, "--limit 5 should return exactly 5 findings");
+}
+
+#[test]
+fn limit_zero_returns_no_findings() {
+    let output = todork()
+        .args([&samples_dir(), "--format", "json", "--limit", "0"])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(arr.is_empty());
+    // The limit is only for display; findings were still discovered, so exit 0.
+    assert_eq!(output.status.code(), Some(0));
+}
+
+#[test]
+fn limit_larger_than_total_returns_all() {
+    let output = todork()
+        .args([&samples_dir(), "--format", "json", "--limit", "1000"])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(arr.len(), 41, "--limit above total count should not invent findings");
+}
+
+#[test]
+fn limit_with_sort_oldest_works() {
+    let output = todork()
+        .args([
+            &samples_dir(),
+            "--format",
+            "json",
+            "--sort",
+            "oldest",
+            "--limit",
+            "3",
+        ])
+        .output()
+        .unwrap();
+    let arr: Vec<serde_json::Value> = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(arr.len(), 3);
+}
+
 // ── todork upgrade ────────────────────────────────────────────────────────────
 
 #[test]

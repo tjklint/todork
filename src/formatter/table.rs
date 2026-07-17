@@ -381,9 +381,14 @@ mod tests {
     }
 
     fn render(findings: &[Finding]) -> String {
+        render_with_total(findings, findings.len())
+    }
+
+    fn render_with_total(findings: &[Finding], total_count: usize) -> String {
         let buf = Vec::new();
         let mut fmt = TableFormatter::new(NoColor::new(buf), false);
-        fmt.write_all(findings, std::time::Duration::ZERO).unwrap();
+        fmt.write_all(findings, std::time::Duration::ZERO, total_count)
+            .unwrap();
         String::from_utf8(fmt.writer.into_inner()).unwrap()
     }
 
@@ -501,5 +506,13 @@ mod tests {
         ];
         let out = render(&findings);
         assert!(out.contains("Found 2 annotations across 2 files."));
+    }
+
+    #[test]
+    fn summary_shows_truncation_note() {
+        let findings = vec![make_finding("a.rs", 1, "TODO", Severity::Warning, None, "x")];
+        let out = render_with_total(&findings, 5);
+        assert!(out.contains("Found 1 annotation across 1 file."));
+        assert!(out.contains("(showing first 1 of 5)"));
     }
 }
