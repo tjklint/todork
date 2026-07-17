@@ -56,9 +56,6 @@ jobs:
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-test-
 
-      - name: Clear stale todork binary
-        run: cargo clean -p todork
-
       - name: cargo test
         run: cargo test --locked
 
@@ -87,9 +84,6 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-cov-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-cov-
-
-      - name: Clear stale todork binary
-        run: cargo clean -p todork
 
       - name: Run coverage
         run: cargo llvm-cov --all-features --lcov --output-path lcov.info
@@ -126,9 +120,6 @@ jobs:
 
       - name: Install Rust 1.86
         uses: dtolnay/rust-toolchain@1.86
-
-      - name: Clear stale todork binary
-        run: cargo clean -p todork
 
       - name: cargo test
         run: cargo test --locked

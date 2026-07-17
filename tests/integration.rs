@@ -30,7 +30,7 @@ fn version_contains_package_version() {
         .arg("--version")
         .assert()
         .success()
-        .stdout(contains(env!("TODORK_VERSION")));
+        .stdout(contains(env!("CARGO_PKG_VERSION")));
 }
 
 #[test]
