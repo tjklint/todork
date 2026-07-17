@@ -1,8 +1,10 @@
 fn main() {
-    // libgit2-sys (vendored) calls into advapi32 on Windows
-    // (CryptAcquireContext, Reg*, token/SID APIs) but doesn't declare
-    // the link dependency itself, so we do it here.
-    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
-        println!("cargo:rustc-link-lib=advapi32");
-    }
+    // Ensure the binary is recompiled when the package version changes so
+    // env!("CARGO_PKG_VERSION")-derived strings do not become stale across
+    // cached builds.
+    println!("cargo:rerun-if-changed=Cargo.toml");
+    println!(
+        "cargo:rustc-env=TODORK_VERSION={}",
+        env!("CARGO_PKG_VERSION")
+    );
 }

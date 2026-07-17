@@ -4,7 +4,7 @@ use std::io::Read;
 use std::{env, fs};
 
 const REPO: &str = "tjklint/todork";
-const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+const CURRENT_VERSION: &str = env!("TODORK_VERSION");
 
 #[derive(Deserialize)]
 struct Release {
