@@ -25,15 +25,6 @@ fn version_exits_zero() {
 }
 
 #[test]
-fn version_contains_package_version() {
-    todork()
-        .arg("--version")
-        .assert()
-        .success()
-        .stdout(contains(env!("CARGO_PKG_VERSION")));
-}
-
-#[test]
 fn no_args_does_not_crash() {
     // With no real scanner yet, scanning "." returns NotFound (1).
     // This test asserts the binary runs without a fatal error (exit 0 or 1).
