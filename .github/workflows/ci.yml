@@ -57,7 +57,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-test-
 
       - name: cargo test
-        run: cargo test --locked
+        run: cargo build --bin todork && cargo test --locked
 
   coverage:
     name: Coverage
@@ -86,7 +86,7 @@ jobs:
           restore-keys: ${{ runner.os }}-cargo-cov-
 
       - name: Run coverage
-        run: cargo llvm-cov --all-features --lcov --output-path lcov.info
+        run: rm -rf target/llvm-cov-target && cargo llvm-cov --all-features --lcov --output-path lcov.info
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -122,4 +122,4 @@ jobs:
         uses: dtolnay/rust-toolchain@1.86
 
       - name: cargo test
-        run: cargo test --locked
+        run: cargo build --bin todork && cargo test --locked
