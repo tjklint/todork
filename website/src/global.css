@@ -427,7 +427,10 @@ code {
   margin: 8px 0;
   overflow-x: auto;
   white-space: nowrap;
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge */
 }
+.qs-code::-webkit-scrollbar { display: none; }
 .qs-code .q-prompt { color: var(--text-muted); user-select: none; }
 .qs-desc { font-size: 13px; color: var(--text-muted); line-height: 1.55; }
 
