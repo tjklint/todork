@@ -449,7 +449,7 @@ code {
 /* ── hero terminal ───────────────────────────────────────────────────── */
 .hero-terminal {
   margin-top: 48px;
-  max-width: 660px;
+  max-width: 760px;
   margin-left: auto;
   margin-right: auto;
   text-align: left;
