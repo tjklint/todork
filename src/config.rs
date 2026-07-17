@@ -36,6 +36,8 @@ pub struct Config {
     pub blame: bool,
     /// Sort order applied to findings before output.
     pub sort: SortOrder,
+    /// Maximum number of findings to display.
+    pub limit: Option<usize>,
 }
 
 impl Config {
@@ -78,6 +80,7 @@ impl Config {
             exit_zero: args.exit_zero,
             blame,
             sort: args.sort,
+            limit: args.limit,
         })
     }
 }
@@ -376,5 +379,17 @@ mod tests {
     fn sort_path_does_not_imply_blame() {
         let c = parse(&["todork", "--sort", "path"]);
         assert!(!c.blame);
+    }
+
+    #[test]
+    fn limit_default_none() {
+        let c = parse(&["todork"]);
+        assert_eq!(c.limit, None);
+    }
+
+    #[test]
+    fn limit_flag_parsed() {
+        let c = parse(&["todork", "--limit", "50"]);
+        assert_eq!(c.limit, Some(50));
     }
 }

@@ -60,10 +60,15 @@ impl<W: WriteColor> TableFormatter<W> {
     }
 
     /// Write the full table followed by a summary + elapsed line.
+    ///
+    /// `total_count` is the total number of findings discovered before any
+    /// `--limit` truncation; when it exceeds `findings.len()` a "showing X of Y"
+    /// note is appended to the summary.
     pub fn write_all(
         &mut self,
         findings: &[Finding],
         elapsed: std::time::Duration,
+        total_count: usize,
     ) -> anyhow::Result<()> {
         if findings.is_empty() {
             return Ok(());
@@ -246,12 +251,21 @@ impl<W: WriteColor> TableFormatter<W> {
         self.set(ColorSpec::new().set_bold(true))?;
         write!(
             self.writer,
-            "Found {} annotation{} across {} file{}.",
+            "Found {} annotation{} across {} file{}",
             findings.len(),
             if findings.len() == 1 { "" } else { "s" },
             file_count,
             if file_count == 1 { "" } else { "s" },
         )?;
+        if total_count > findings.len() {
+            write!(
+                self.writer,
+                "  (showing first {} of {})",
+                findings.len(),
+                total_count,
+            )?;
+        }
+        write!(self.writer, ".")?;
         self.reset()?;
 
         self.set(ColorSpec::new().set_dimmed(true))?;
