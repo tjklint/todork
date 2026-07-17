@@ -349,6 +349,10 @@ code {
   max-width: 100%;
   min-width: 0;
 }
+.demo-stack .terminal-body {
+  height: 300px;
+  overflow-y: hidden;
+}
 
 /* ── features ────────────────────────────────────────────────────────── */
 .features-grid {
