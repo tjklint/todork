@@ -60,10 +60,15 @@ impl<W: WriteColor> TableFormatter<W> {
     }
 
     /// Write the full table followed by a summary + elapsed line.
+    ///
+    /// `total_count` is the total number of findings discovered before any
+    /// `--limit` truncation; when it exceeds `findings.len()` a "showing X of Y"
+    /// note is appended to the summary.
     pub fn write_all(
         &mut self,
         findings: &[Finding],
         elapsed: std::time::Duration,
+        total_count: usize,
     ) -> anyhow::Result<()> {
         if findings.is_empty() {
             return Ok(());
@@ -246,12 +251,21 @@ impl<W: WriteColor> TableFormatter<W> {
         self.set(ColorSpec::new().set_bold(true))?;
         write!(
             self.writer,
-            "Found {} annotation{} across {} file{}.",
+            "Found {} annotation{} across {} file{}",
             findings.len(),
             if findings.len() == 1 { "" } else { "s" },
             file_count,
             if file_count == 1 { "" } else { "s" },
         )?;
+        if total_count > findings.len() {
+            write!(
+                self.writer,
+                "  (showing first {} of {})",
+                findings.len(),
+                total_count,
+            )?;
+        }
+        write!(self.writer, ".")?;
         self.reset()?;
 
         self.set(ColorSpec::new().set_dimmed(true))?;
@@ -367,9 +381,14 @@ mod tests {
     }
 
     fn render(findings: &[Finding]) -> String {
+        render_with_total(findings, findings.len())
+    }
+
+    fn render_with_total(findings: &[Finding], total_count: usize) -> String {
         let buf = Vec::new();
         let mut fmt = TableFormatter::new(NoColor::new(buf), false);
-        fmt.write_all(findings, std::time::Duration::ZERO).unwrap();
+        fmt.write_all(findings, std::time::Duration::ZERO, total_count)
+            .unwrap();
         String::from_utf8(fmt.writer.into_inner()).unwrap()
     }
 
@@ -487,5 +506,13 @@ mod tests {
         ];
         let out = render(&findings);
         assert!(out.contains("Found 2 annotations across 2 files."));
+    }
+
+    #[test]
+    fn summary_shows_truncation_note() {
+        let findings = vec![make_finding("a.rs", 1, "TODO", Severity::Warning, None, "x")];
+        let out = render_with_total(&findings, 5);
+        assert!(out.contains("Found 1 annotation across 1 file."));
+        assert!(out.contains("(showing first 1 of 5)"));
     }
 }

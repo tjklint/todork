@@ -85,6 +85,11 @@ pub struct Args {
     /// `oldest` and `newest` sort by git blame date and imply `--blame`.
     #[arg(long, short = 's', value_enum, default_value = "path")]
     pub sort: SortOrder,
+
+    /// Maximum number of findings to display.
+    /// Shows a summary of the total count when truncated.
+    #[arg(long)]
+    pub limit: Option<usize>,
 }
 
 /// Output format selection.
@@ -260,6 +265,18 @@ mod tests {
     fn sort_short_flag() {
         let args = Args::parse_from(["todork", "-s", "newest"]);
         assert_eq!(args.sort, SortOrder::Newest);
+    }
+
+    #[test]
+    fn limit_default_none() {
+        let args = Args::parse_from(["todork"]);
+        assert_eq!(args.limit, None);
+    }
+
+    #[test]
+    fn limit_flag_parsed() {
+        let args = Args::parse_from(["todork", "--limit", "50"]);
+        assert_eq!(args.limit, Some(50));
     }
 
     #[test]
