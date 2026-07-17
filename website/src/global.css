@@ -344,6 +344,11 @@ code {
   flex-direction: column;
   gap: 24px;
 }
+.demo-stack .terminal-wrap {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
 
 /* ── features ────────────────────────────────────────────────────────── */
 .features-grid {
